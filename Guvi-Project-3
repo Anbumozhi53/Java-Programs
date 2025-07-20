@@ -1,1 +1,111 @@
 
+/ Bus.java
+package com.example.busbooking.entity;
+
+import jakarta.persistence.*;
+
+@Entity
+public class Bus {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    private String route;
+    private String departureTime;
+    private String arrivalTime;
+    private double price;
+    // getters and setters
+}
+
+// Passenger.java
+package com.example.busbooking.entity;
+
+import jakarta.persistence.*;
+
+@Entity
+public class Passenger {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    private String name;
+    private String email;
+    private String password;
+    // getters and setters
+}
+
+// Booking.java
+package com.example.busbooking.entity;
+
+import jakarta.persistence.*;
+
+@Entity
+public class Booking {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    @ManyToOne
+    private Passenger passenger;
+    @ManyToOne
+    private Bus bus;
+    private String seatNumber;
+    // getters and setters
+}
+
+// BusRepository.java
+package com.example.busbooking.repository;
+
+import com.example.busbooking.entity.Bus;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface BusRepository extends JpaRepository<Bus, Long> {}
+
+// BusController.java
+package com.example.busbooking.controller;
+
+import com.example.busbooking.entity.Bus;
+import com.example.busbooking.repository.BusRepository;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/buses")
+public class BusController {
+    private final BusRepository repo;
+    public BusController(BusRepository repo) { this.repo = repo; }
+
+    @GetMapping
+    public List<Bus> getAll() { return repo.findAll(); }
+}
+
+<!-- bus-search.html -->
+<form id="searchForm">
+  <input type="text" name="from" placeholder="From" required>
+  <input type="text" name="to" placeholder="To" required>
+  <button type="submit">Search</button>
+</form>
+<div id="results"></div>
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script>
+document.getElementById('searchForm').onsubmit = async function(e) {
+  e.preventDefault();
+  // Example: fetch all buses (customize for route search)
+  const res = await axios.get('/api/buses');
+  document.getElementById('results').innerHTML = JSON.stringify(res.data);
+};
+</script>
+
+<!-- register.html -->
+<form id="registerForm">
+  <input type="text" name="name" placeholder="Name" required>
+  <input type="email" name="email" placeholder="Email" required>
+  <input type="password" name="password" placeholder="Password" required>
+  <button type="submit">Register</button>
+</form>
+<script>
+document.getElementById('registerForm').onsubmit = async function(e) {
+  e.preventDefault();
+  const data = Object.fromEntries(new FormData(e.target).entries());
+  await axios.post('/api/passengers', data);
+  alert('Registered!');
+};
+</script>
