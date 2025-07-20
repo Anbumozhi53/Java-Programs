@@ -1,1 +1,121 @@
+// Patient.java
+package com.example.hms.entity;
 
+import jakarta.persistence.*;
+import jakarta.validation.constraints.*;
+
+@Entity
+public class Patient {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @NotBlank(message = "Name is required")
+    private String name;
+
+    @NotBlank(message = "Contact is required")
+    private String contact;
+
+    // Getters and setters...
+}
+
+// Medicine.java
+package com.example.hms.entity;
+
+import jakarta.persistence.*;
+import jakarta.validation.constraints.*;
+
+@Entity
+public class Medicine {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @NotBlank(message = "Medicine name is required")
+    private String name;
+
+    @NotBlank(message = "Dosage is required")
+    private String dosage;
+
+    // Getters and setters...
+}
+
+
+// Appointment.java
+package com.example.hms.entity;
+
+import jakarta.persistence.*;
+import jakarta.validation.constraints.*;
+import java.time.LocalDateTime;
+
+@Entity
+public class Appointment {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @ManyToOne
+    private Patient patient;
+
+    @NotNull(message = "Date and time required")
+    private LocalDateTime dateTime;
+
+    // Getters and setters...
+}
+
+// PatientRepository.java
+package com.example.hms.repository;
+
+import com.example.hms.entity.Patient;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface PatientRepository extends JpaRepository<Patient, Long> {}
+
+
+// PatientController.java
+package com.example.hms.controller;
+
+import com.example.hms.entity.Patient;
+import com.example.hms.repository.PatientRepository;
+import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
+import org.springframework.http.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/patients")
+public class PatientController {
+    private final PatientRepository repo;
+    public PatientController(PatientRepository repo) { this.repo = repo; }
+
+    @GetMapping
+    public List<Patient> getAll() { return repo.findAll(); }
+
+    @PostMapping
+    public ResponseEntity<?> create(@Valid @RequestBody Patient patient) {
+        return new ResponseEntity<>(repo.save(patient), HttpStatus.CREATED);
+    }
+
+    // Add GET by id, PUT, DELETE as needed
+}
+
+
+<form id="patientForm">
+  <input type="text" name="name" placeholder="Patient Name" required />
+  <input type="text" name="contact" placeholder="Contact" required />
+  <button type="submit">Add Patient</button>
+</form>
+<script>
+document.getElementById('patientForm').onsubmit = async function(e) {
+  e.preventDefault();
+  const data = Object.fromEntries(new FormData(e.target).entries());
+  const res = await fetch('/api/patients', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(data)
+  });
+  if (res.ok) alert('Patient added!');
+  else alert('Error');
+};
+</script>
