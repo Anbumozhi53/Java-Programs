@@ -1,1 +1,75 @@
+// EmployeeController.java
+@RestController
+@RequestMapping("/api/employees")
+public class EmployeeController {
+
+    @Autowired
+    private EmployeeRepository employeeRepository;
+
+    @GetMapping
+    public List<Employee> getAllEmployees() {
+        return employeeRepository.findAll();
+    }
+
+    @PostMapping
+    public Employee createEmployee(@Valid @RequestBody Employee employee) {
+        return employeeRepository.save(employee);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<Employee> getEmployeeById(@PathVariable Long id) {
+        return employeeRepository.findById(id)
+            .map(ResponseEntity::ok)
+            .orElse(ResponseEntity.notFound().build());
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Employee> updateEmployee(@PathVariable Long id, @Valid @RequestBody Employee employeeDetails) {
+        return employeeRepository.findById(id)
+            .map(employee -> {
+                employee.setName(employeeDetails.getName());
+                employee.setEmail(employeeDetails.getEmail());
+                employee.setDepartment(employeeDetails.getDepartment());
+                employeeRepository.save(employee);
+                return ResponseEntity.ok(employee);
+            })
+            .orElse(ResponseEntity.notFound().build());
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteEmployee(@PathVariable Long id) {
+        return employeeRepository.findById(id)
+            .map(employee -> {
+                employeeRepository.delete(employee);
+                return ResponseEntity.noContent().build();
+            })
+            .orElse(ResponseEntity.notFound().build());
+    }
+}
+
+<!-- add-employee.html -->
+<form id="addEmployeeForm">
+  <input type="text" name="name" placeholder="Name" required />
+  <input type="email" name="email" placeholder="Email" required />
+  <input type="text" name="department" placeholder="Department" required />
+  <button type="submit">Add Employee</button>
+</form>
+<script>
+document.getElementById('addEmployeeForm').onsubmit = async function(e) {
+  e.preventDefault();
+  const formData = new FormData(e.target);
+  const data = Object.fromEntries(formData.entries());
+  const res = await fetch('/api/employees', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(data)
+  });
+  if (res.ok) {
+    alert('Employee added!');
+  } else {
+    alert('Error adding employee');
+  }
+};
+</script>
+
 
